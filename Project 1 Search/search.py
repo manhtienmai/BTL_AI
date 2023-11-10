@@ -87,16 +87,66 @@ def depthFirstSearch(problem: SearchProblem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
+    stack = util.Stack()
+    visited = set()
+    stack.push((problem.getStartState(), []))
+
+    while not stack.isEmpty():
+        state, path = stack.pop()
+        
+        if problem.isGoalState(state):
+            return path
+        
+        if state not in visited:
+            visited.add(state)
+            for successor, action, cost in problem.getSuccessors(state):
+                if successor not in visited:
+                    newPath = path + [action]
+                    stack.push((successor, newPath))
     util.raiseNotDefined()
 
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
+    queue = util.Queue()
+    visited = set()
+    queue.push((problem.getStartState(), []))
+
+    while not queue.isEmpty():
+        state, path = queue.pop()
+
+        if problem.isGoalState(state):
+            return path
+        
+        if state not in visited:
+            visited.add(state)
+            for successor, action, cost in problem.getSuccessors(state):
+                if successor not in visited:
+                    newPath = path + [action]
+                    queue.push((successor, newPath))
     util.raiseNotDefined()
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
+    priority_queue = util.PriorityQueue()
+    visited = set()
+
+    priority_queue.push((problem.getStartState(), [], 0), 0)
+
+    while not priority_queue.isEmpty():
+        state, path, current_cost = priority_queue.pop()
+
+        if problem.isGoalState(state):
+            return path
+        
+        if state not in visited:
+            visited.add(state)
+            for successor, action, cost in problem.getSuccessors(state):
+                if successor not in visited:
+                    new_cost = cost + current_cost
+                    new_path = path + [action]
+                    priority_queue.push((successor, new_path, new_cost), new_cost)
     util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
