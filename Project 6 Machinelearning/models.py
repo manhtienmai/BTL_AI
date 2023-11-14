@@ -62,7 +62,11 @@ class RegressionModel(object):
     def __init__(self):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
-
+        #initialize weights and biases
+        self.w1 = nn.Parameter(1, 512)
+        self.b1 = nn.Parameter(1, 512)
+        self.w2 = nn.Parameter(512, 1)
+        self.b2 = nn.Parameter(1, 1)
     def run(self, x):
         """
         Runs the model for a batch of examples.
@@ -73,7 +77,11 @@ class RegressionModel(object):
             A node with shape (batch_size x 1) containing predicted y-values
         """
         "*** YOUR CODE HERE ***"
-
+        x = nn.Linear(x, self.w1)
+        x = nn.AddBias(x, self.b1)
+        x = nn.ReLU(x)
+        x2 = nn.AddBias(nn.Linear(x, self.w2), self.b2)
+        return x2
     def get_loss(self, x, y):
         """
         Computes the loss for a batch of examples.
@@ -85,13 +93,27 @@ class RegressionModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
-
+        predicted_value = self.run(x)
+        return nn.SquareLoss(predicted_value, y)
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+        learning_rate = 0.05
+        batch_size = 200
 
+        while True:
+            for x, y in dataset.iterate_once(batch_size):
+                loss = self.get_loss(x, y)
+                loss_scalar = nn.as_scalar(loss)
+                if loss_scalar <= 0.02:
+                    return
+                gradients = nn.gradients(loss, [self.w1, self.b1, self.w2, self.b2])
+                self.w1.update(gradients[0], -learning_rate)
+                self.b1.update(gradients[1], -learning_rate)
+                self.w2.update(gradients[2], -learning_rate)
+                self.b2.update(gradients[3], -learning_rate)
 class DigitClassificationModel(object):
     """
     A model for handwritten digit classification using the MNIST dataset.
