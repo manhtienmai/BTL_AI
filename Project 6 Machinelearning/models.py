@@ -131,7 +131,14 @@ class DigitClassificationModel(object):
     def __init__(self):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
+        input_size = 784
+        hidden_layer_size = 200  # suggested size
+        output_size = 10 # 10 classes (digits 0->9)
 
+        self.W1 = nn.Parameter(input_size, hidden_layer_size)
+        self.b1 = nn.Parameter(1, hidden_layer_size)
+        self.W2 = nn.Parameter(hidden_layer_size, output_size)
+        self.b2 = nn.Parameter(1, output_size)
     def run(self, x):
         """
         Runs the model for a batch of examples.
@@ -147,7 +154,12 @@ class DigitClassificationModel(object):
                 (also called logits)
         """
         "*** YOUR CODE HERE ***"
-
+        x = nn.Linear(x, self.W1)
+        x = nn.AddBias(x, self.b1)
+        x = nn.ReLU(x)
+        x = nn.Linear(x, self.W2)
+        x = nn.AddBias(x, self.b2)
+        return x
     def get_loss(self, x, y):
         """
         Computes the loss for a batch of examples.
@@ -162,12 +174,27 @@ class DigitClassificationModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
-
+        predicted_value = self.run(x)
+        return nn.SoftmaxLoss(predicted_value, y)
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+        learning_rate = 0.5 # as suggested
+        batch_size = 100 # suggest
+
+        while True:
+            for x, y in dataset.iterate_once(batch_size):
+                loss = self.get_loss(x, y)
+                gradients = nn.gradients(loss, [self.W1, self.b1, self.W2, self.b2])
+                self.W1.update(gradients[0], -learning_rate)
+                self.b1.update(gradients[1], -learning_rate)
+                self.W2.update(gradients[2], -learning_rate)
+                self.b2.update(gradients[3], -learning_rate)
+            print(f"Accuracy: {dataset.get_validation_accuracy()}")
+            if dataset.get_validation_accuracy() > 0.98:
+                return
 
 class LanguageIDModel(object):
     """
