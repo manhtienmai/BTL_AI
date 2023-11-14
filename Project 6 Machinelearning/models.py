@@ -214,7 +214,12 @@ class LanguageIDModel(object):
 
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
-
+        hidden_size = 200
+        self.W_initial = nn.Parameter(self.num_chars, hidden_size)
+        self.W_hidden = nn.Parameter(hidden_size, hidden_size)
+        self.Wx = nn.Parameter(self.num_chars, hidden_size)
+        self.W_final = nn.Parameter(hidden_size, len(self.languages))
+        self.b_final = nn.Parameter(1, len(self.languages))
     def run(self, xs):
         """
         Runs the model for a batch of examples.
@@ -245,7 +250,14 @@ class LanguageIDModel(object):
                 (also called logits)
         """
         "*** YOUR CODE HERE ***"
+        trans = nn.Linear(xs[0], self.W_initial)
 
+        # each character in word
+        for c in xs[1:]:
+            a = nn.Add(nn.Linear(c, self.Wx), nn.Linear(trans, self.W_hidden))
+            trans = nn.ReLU(a)
+        result = nn.AddBias(nn.Linear(trans, self.W_final), self.b_final)
+        return result
     def get_loss(self, xs, y):
         """
         Computes the loss for a batch of examples.
@@ -261,9 +273,28 @@ class LanguageIDModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
-
+        predicted_value = self.run(xs)
+        return nn.SoftmaxLoss(predicted_value, y)
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+        threshold = 0.87
+        learning_rate = 0.1
+        batch_size = 100
+
+        while True:
+            for xs, y in dataset.iterate_once(batch_size):
+                loss = self.get_loss(xs, y)
+                gradients = nn.gradients(loss, [self.W_initial, self.W_hidden, self.Wx, self.W_final, self.b_final])
+
+                #update value of parameters
+                self.W_initial.update(gradients[0], -learning_rate)
+                self.W_hidden.update(gradients[1], -learning_rate)
+                self.Wx.update(gradients[2], -learning_rate)
+                self.W_final.update(gradients[3], -learning_rate)
+                self.b_final.update(gradients[4], -learning_rate)
+            print(f"Accuracy: {dataset.get_validation_accuracy()}")
+            if dataset.get_validation_accuracy() > threshold:
+                return
