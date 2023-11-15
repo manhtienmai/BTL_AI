@@ -82,9 +82,8 @@ class RegressionModel(object):
         x = nn.Linear(x, self.w1)
         x = nn.AddBias(x, self.b1)
         x = nn.ReLU(x)
-        x = nn.Linear(x, self.w2)
-        x = nn.AddBias(x, self.b2)
-        return x
+        x2 = nn.AddBias(nn.Linear(x, self.w2), self.b2)
+        return x2
     def get_loss(self, x, y):
         """
         Computes the loss for a batch of examples.
@@ -117,8 +116,6 @@ class RegressionModel(object):
                 self.b1.update(gradients[1], -learning_rate)
                 self.w2.update(gradients[2], -learning_rate)
                 self.b2.update(gradients[3], -learning_rate)
-
-
 class DigitClassificationModel(object):
     """
     A model for handwritten digit classification using the MNIST dataset.
@@ -136,7 +133,14 @@ class DigitClassificationModel(object):
     def __init__(self):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
+        input_size = 784
+        hidden_layer_size = 200  # suggested size
+        output_size = 10 # 10 classes (digits 0->9)
 
+        self.W1 = nn.Parameter(input_size, hidden_layer_size)
+        self.b1 = nn.Parameter(1, hidden_layer_size)
+        self.W2 = nn.Parameter(hidden_layer_size, output_size)
+        self.b2 = nn.Parameter(1, output_size)
     def run(self, x):
         """
         Runs the model for a batch of examples.
@@ -152,7 +156,12 @@ class DigitClassificationModel(object):
                 (also called logits)
         """
         "*** YOUR CODE HERE ***"
-
+        x = nn.Linear(x, self.W1)
+        x = nn.AddBias(x, self.b1)
+        x = nn.ReLU(x)
+        x = nn.Linear(x, self.W2)
+        x = nn.AddBias(x, self.b2)
+        return x
     def get_loss(self, x, y):
         """
         Computes the loss for a batch of examples.
@@ -167,12 +176,27 @@ class DigitClassificationModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
-
+        predicted_value = self.run(x)
+        return nn.SoftmaxLoss(predicted_value, y)
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+        learning_rate = 0.5 # as suggested
+        batch_size = 100 # suggest
+
+        while True:
+            for x, y in dataset.iterate_once(batch_size):
+                loss = self.get_loss(x, y)
+                gradients = nn.gradients(loss, [self.W1, self.b1, self.W2, self.b2])
+                self.W1.update(gradients[0], -learning_rate)
+                self.b1.update(gradients[1], -learning_rate)
+                self.W2.update(gradients[2], -learning_rate)
+                self.b2.update(gradients[3], -learning_rate)
+            print(f"Accuracy: {dataset.get_validation_accuracy()}")
+            if dataset.get_validation_accuracy() > 0.98:
+                return
 
 class LanguageIDModel(object):
     """
@@ -192,7 +216,12 @@ class LanguageIDModel(object):
 
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
-
+        hidden_size = 200
+        self.W_initial = nn.Parameter(self.num_chars, hidden_size)
+        self.W_hidden = nn.Parameter(hidden_size, hidden_size)
+        self.Wx = nn.Parameter(self.num_chars, hidden_size)
+        self.W_final = nn.Parameter(hidden_size, len(self.languages))
+        self.b_final = nn.Parameter(1, len(self.languages))
     def run(self, xs):
         """
         Runs the model for a batch of examples.
@@ -223,7 +252,14 @@ class LanguageIDModel(object):
                 (also called logits)
         """
         "*** YOUR CODE HERE ***"
+        trans = nn.Linear(xs[0], self.W_initial)
 
+        # each character in word
+        for c in xs[1:]:
+            a = nn.Add(nn.Linear(c, self.Wx), nn.Linear(trans, self.W_hidden))
+            trans = nn.ReLU(a)
+        result = nn.AddBias(nn.Linear(trans, self.W_final), self.b_final)
+        return result
     def get_loss(self, xs, y):
         """
         Computes the loss for a batch of examples.
@@ -239,9 +275,28 @@ class LanguageIDModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
-
+        predicted_value = self.run(xs)
+        return nn.SoftmaxLoss(predicted_value, y)
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+        threshold = 0.87
+        learning_rate = 0.1
+        batch_size = 100
+
+        while True:
+            for xs, y in dataset.iterate_once(batch_size):
+                loss = self.get_loss(xs, y)
+                gradients = nn.gradients(loss, [self.W_initial, self.W_hidden, self.Wx, self.W_final, self.b_final])
+
+                #update value of parameters
+                self.W_initial.update(gradients[0], -learning_rate)
+                self.W_hidden.update(gradients[1], -learning_rate)
+                self.Wx.update(gradients[2], -learning_rate)
+                self.W_final.update(gradients[3], -learning_rate)
+                self.b_final.update(gradients[4], -learning_rate)
+            print(f"Accuracy: {dataset.get_validation_accuracy()}")
+            if dataset.get_validation_accuracy() > threshold:
+                return
