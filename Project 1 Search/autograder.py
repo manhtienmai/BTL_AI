@@ -13,9 +13,8 @@
 
 
 # imports from python standard library
-from __future__ import print_function
 import grading
-import importlib
+import imp
 import optparse
 import os
 import re
@@ -115,7 +114,7 @@ def setModuleName(module, filename):
         elif type(o) == classType:
             setattr(o, '__file__', filename)
             # TODO: assign member __file__'s?
-        #print i, type(o)
+        #print(i, type(o))
 
 
 #from cStringIO import StringIO
@@ -126,22 +125,17 @@ def loadModuleString(moduleSource):
     #
     #f = StringIO(moduleCodeDict[k])
     #tmp = imp.load_module(k, f, k, (".py", "r", imp.PY_SOURCE))
-    tmp = importlib.new_module(k)
-    #exec moduleCodeDict[k] in tmp.__dict__
+    tmp = imp.new_module(k)
+    exec(moduleCodeDict[k] in tmp.__dict__)
     setModuleName(tmp, k)
     return tmp
 
 import py_compile
 
-# def loadModuleFile(moduleName, filePath):
-#     with open(filePath, 'r') as f:
-#         return importlib.import_module(moduleName, f, "%s.py" % moduleName, (".py", "r", importlib.PY_SOURCE))
-
 def loadModuleFile(moduleName, filePath):
-    spec = importlib.util.spec_from_file_location(moduleName, filePath)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    with open(filePath, 'r') as f:
+        return imp.load_module(moduleName, f, "%s.py" % moduleName, (".py", "r", imp.PY_SOURCE))
+
 
 def readFile(path, root=""):
     "Read file from disk at specified path and return as string"
@@ -275,8 +269,8 @@ def evaluate(generateSolutions, testRoot, moduleDict, exceptionMap=ERROR_HINT_MA
         questionDicts[q] = questionDict
 
         # load test cases into question
-        tests = filter(lambda t: re.match(r'[^#~.].*\.test\Z', t), os.listdir(subdir_path))
-        tests = map(lambda t: re.match(r'(.*)\.test\Z', t).group(1), tests)
+        tests = filter(lambda t: re.match('[^#~.].*\.test\Z', t), os.listdir(subdir_path))
+        tests = map(lambda t: re.match('(.*)\.test\Z', t).group(1), tests)
         for t in sorted(tests):
             test_file = os.path.join(subdir_path, '%s.test' % t)
             solution_file = os.path.join(subdir_path, '%s.solution' % t)
@@ -349,9 +343,9 @@ if __name__ == '__main__':
 
     moduleDict = {}
     for cp in codePaths:
-        moduleName = re.match(r'.*?([^/]*)\.py', cp).group(1)
+        moduleName = re.match('.*?([^/]*)\.py', cp).group(1)
         moduleDict[moduleName] = loadModuleFile(moduleName, os.path.join(options.codeRoot, cp))
-    moduleName = re.match(r'.*?([^/]*)\.py', options.testCaseCode).group(1)
+    moduleName = re.match('.*?([^/]*)\.py', options.testCaseCode).group(1)
     moduleDict['projectTestClasses'] = loadModuleFile(moduleName, os.path.join(options.codeRoot, options.testCaseCode))
 
 
