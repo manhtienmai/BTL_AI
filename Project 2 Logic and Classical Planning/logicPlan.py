@@ -50,18 +50,17 @@ def sentence1() -> Expr:
     (not A) or (not B) or C
     """
     "*** BEGIN YOUR CODE HERE ***"
+    A = Expr('A')
+    B = Expr('B')
+    C = Expr('C')
+
+    s1 = A | B
+    s2 = ~A % (~B | C)
+    s3 = disjoin([~A, ~B, C])
+
+    return conjoin([s1, s2, s3])
     util.raiseNotDefined()
-    A = Expr()  # You need to define A, B, and C as instances of Expr
-    B = Expr()
-    C = Expr()
-
-    # Construct the logical expressions
-    expr1 = A | B
-    expr2 = ~(~A | B)  # ¬A ↔ (¬B ∨ C)
-    expr3 = ~A | ~B | C
-
-    # Return a conjunction of the three expressions
-    return expr1 & expr2 & expr3
+    
     "*** END YOUR CODE HERE ***"
     
 
@@ -74,20 +73,15 @@ def sentence2() -> Expr:
     (not D) implies C
     """
     "*** BEGIN YOUR CODE HERE ***"
+    A, B, C, D = Expr('A'), Expr('B'), Expr('C'), Expr('D')
+
+    s1 = C % (B | D)
+    s2 = A >> (~B & ~D)
+    s3 = ~(B & ~C) >> A
+    s4 = ~D >> C
+
+    return conjoin([s1, s2, s3, s4])
     util.raiseNotDefined()
-    A = Expr()  # You need to define A, B, C, and D as instances of Expr
-    B = Expr()
-    C = Expr()
-    D = Expr()
-
-    # Construct the logical expressions
-    expr1 = C == (B | D)  # C ↔ (B ∨ D)
-    expr2 = ~A | (~B & ~D)  # A implies ((¬B) ∧ (¬D))
-    expr3 = ~(B & ~C) >> A  # (¬(B ∧ ¬C)) implies A
-    expr4 = ~D >> C  # (¬D) implies C
-
-    # Return a conjunction of the four expressions
-    return expr1 & expr2 & expr3 & expr4
     "*** END YOUR CODE HERE ***"
 
 
@@ -104,20 +98,17 @@ def sentence3() -> Expr:
     Pacman is born at time 0.
     """
     "*** BEGIN YOUR CODE HERE ***"
+    PacmanAlive_0 = PropSymbolExpr("PacmanAlive", time=0)
+    PacmanAlive_1 = PropSymbolExpr("PacmanAlive", time=1)
+    PacmanBorn_0 = PropSymbolExpr("PacmanBorn", time=0)
+    PacmanKilled_0 = PropSymbolExpr("PacmanKilled", time=0)
+
+    s1 = PacmanAlive_1 % ((PacmanAlive_0 & ~PacmanKilled_0) | (~PacmanAlive_0 & PacmanBorn_0))
+    s2 = ~(PacmanAlive_0 & PacmanBorn_0)
+    s3 = PacmanBorn_0
+
+    return conjoin([s1, s2, s3])
     util.raiseNotDefined()
-    # Define the symbols
-    PacmanAlive_1 = PropSymbolExpr('PacmanAlive', 1)
-    PacmanAlive_0 = PropSymbolExpr('PacmanAlive', 0)
-    PacmanBorn_0 = PropSymbolExpr('PacmanBorn', 0)
-    PacmanKilled_0 = PropSymbolExpr('PacmanKilled', 0)
-
-    # Construct the logical expressions
-    expr1 = PacmanAlive_1 % (PacmanAlive_0 & ~PacmanKilled_0 | ~PacmanAlive_0 & PacmanBorn_0)
-    expr2 = ~(PacmanAlive_0 & PacmanBorn_0)
-    expr3 = PacmanBorn_0
-
-    # Return a conjunction of the three expressions
-    return expr1 & expr2 & expr3
     "*** END YOUR CODE HERE ***"
 
 def findModel(sentence: Expr) -> Dict[Expr, bool]:
@@ -134,29 +125,17 @@ def findModelUnderstandingCheck() -> Dict[Expr, bool]:
     a = Expr('A')
     "*** BEGIN YOUR CODE HERE ***"
     print("a.__dict__ is:", a.__dict__) # might be helpful for getting ideas
+    a.__dict__['op'] = 'a'
+    return {a : True}
     util.raiseNotDefined()
-     a = Expr('A')
-    # Assuming that findModel takes a lowercase expression, create a lowercase version of 'a'
-    a_lowercase = Expr('a')
-    # Call findModel with the lowercase expression
-    model_result = findModel(a_lowercase)
-    # Return the result
-    return model_result
     "*** END YOUR CODE HERE ***"
 
 def entails(premise: Expr, conclusion: Expr) -> bool:
     """Returns True if the premise entails the conclusion and False otherwise.
     """
     "*** BEGIN YOUR CODE HERE ***"
+    return not findModel(premise & ~conclusion)
     util.raiseNotDefined()
-    # Create a symbolic expression representing the negation of the conclusion
-    not_conclusion = ~conclusion
-    # Create a conjunction of the premise and the negation of the conclusion
-    combined_expr = premise & not_conclusion
-    # Convert the combined expression to CNF (Conjunctive Normal Form)
-    cnf_expr = to_cnf(combined_expr)
-    # Check if the CNF expression is unsatisfiable
-    return not satisfiable(cnf_expr)
     "*** END YOUR CODE HERE ***"
 
 def plTrueInverse(assignments: Dict[Expr, bool], inverse_statement: Expr) -> bool:
@@ -164,11 +143,12 @@ def plTrueInverse(assignments: Dict[Expr, bool], inverse_statement: Expr) -> boo
     pl_true may be useful here; see logic.py for its description.
     """
     "*** BEGIN YOUR CODE HERE ***"
+    negated_statement = ~inverse_statement
+    result = pl_true(negated_statement, assignments)
+    print(f"Result: {result}")
+
+    return result
     util.raiseNotDefined()
-    # Evaluate the truth value of the inverse statement
-    inverse_truth_value = pl_true(inverse_statement, assignments)
-    # Return the negation of the truth value
-    return not inverse_truth_value
     "*** END YOUR CODE HERE ***"
 
 #______________________________________________________________________________
@@ -196,7 +176,6 @@ def atLeastOne(literals: List[Expr]) -> Expr:
     """
     "* BEGIN YOUR CODE HERE *"    
     return disjoin(literals)
-    util.raiseNotDefined()
     "* END YOUR CODE HERE *"
 
 
@@ -214,7 +193,6 @@ def atMostOne(literals: List[Expr]) -> Expr:
             clause = ~literals[i] | ~literals[j]
             clauses.append(clause)
     return conjoin(clauses)
-    util.raiseNotDefined()
     "* END YOUR CODE HERE *"
 
 
@@ -226,7 +204,6 @@ def exactlyOne(literals: List[Expr]) -> Expr:
     """
     "* BEGIN YOUR CODE HERE *"
     return conjoin([atLeastOne(literals), atMostOne(literals)])
-    util.raiseNotDefined()
     "* END YOUR CODE HERE *"
 
 #______________________________________________________________________________
@@ -259,6 +236,7 @@ def pacmanSuccessorAxiomSingle(x: int, y: int, time: int, walls_grid: List[List[
         return None
     
     "*** BEGIN YOUR CODE HERE ***"
+    return (PropSymbolExpr(pacman_str, x, y, time=now) % disjoin(possible_causes))
     util.raiseNotDefined()
     "*** END YOUR CODE HERE ***"
 
@@ -330,8 +308,29 @@ def pacphysicsAxioms(t: int, all_coords: List[Tuple], non_outer_wall_coords: Lis
     pacphysics_sentences = []
 
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    for x, y in all_coords:
+        if walls_grid and walls_grid[x][y]:
+            pacphysics_sentences.append(~PropSymbolExpr(pacman_str, x, y, time=t))
+
+    # Pac-Man must be in exactly one position
+    possible_positions = [PropSymbolExpr(pacman_str, x, y, time=t) for x, y in non_outer_wall_coords]
+    pacphysics_sentences.append(exactlyOne(possible_positions))
+
+    # Pac-Man takes exactly one action
+    possible_actions = [PropSymbolExpr(action, time=t) for action in ['North', 'East', 'South', 'West']]
+    pacphysics_sentences.append(exactlyOne(possible_actions))
+
+    # Incorporate sensor model axioms if provided
+    if sensorModel is not None:
+        pacphysics_sentences.append(sensorModel(t, non_outer_wall_coords))
+
+    # Incorporate successor axioms if provided
+    if t > 0 and successorAxioms is not None:
+        # Adjust this line to match the signature of allLegalSuccessorAxioms
+        successor_sentences = [successorAxioms(x, y, t) for x, y in non_outer_wall_coords]  # Removed walls_grid if it's not needed
+        pacphysics_sentences.extend(filter(None, successor_sentences))
+
+        "*** END YOUR CODE HERE ***"
 
     return conjoin(pacphysics_sentences)
 
@@ -364,8 +363,18 @@ def checkLocationSatisfiability(x1_y1: Tuple[int, int], x0_y0: Tuple[int, int], 
     KB.append(conjoin(map_sent))
 
     "*** BEGIN YOUR CODE HERE ***"
+    KB.append(pacphysicsAxioms(0, all_coords, non_outer_wall_coords, walls_grid, sensorModel= None, successorAxioms= allLegalSuccessorAxioms))
+    KB.append(pacphysicsAxioms(1, all_coords, non_outer_wall_coords, walls_grid, sensorModel= None, successorAxioms= allLegalSuccessorAxioms))
+    KB.append(PropSymbolExpr(pacman_str, x0, y0, time = 0))
+    KB.append(PropSymbolExpr(action0, time= 0))
+    KB.append(PropSymbolExpr(action1, time= 1))
+    model1 = findModel(conjoin([conjoin(KB), PropSymbolExpr(pacman_str, x1, y1, time= 1)]))
+    model2 = findModel(conjoin([conjoin(KB), ~PropSymbolExpr(pacman_str, x1, y1, time= 1)]))
+    return(model1, model2)
+
     util.raiseNotDefined()
     "*** END YOUR CODE HERE ***"
+
 
 #______________________________________________________________________________
 # QUESTION 4
@@ -391,6 +400,8 @@ def positionLogicPlan(problem) -> List:
     KB = []
 
     "*** BEGIN YOUR CODE HERE ***"
+    max_timesteps = 50
+    
     util.raiseNotDefined()
     "*** END YOUR CODE HERE ***"
 
