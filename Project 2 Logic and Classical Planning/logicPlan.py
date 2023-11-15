@@ -174,6 +174,7 @@ def plTrueInverse(assignments: Dict[Expr, bool], inverse_statement: Expr) -> boo
 #______________________________________________________________________________
 # QUESTION 2
 
+
 def atLeastOne(literals: List[Expr]) -> Expr:
     """
     Given a list of Expr literals (i.e. in the form A or ~A), return a single 
@@ -193,9 +194,10 @@ def atLeastOne(literals: List[Expr]) -> Expr:
     >>> print(pl_true(atleast1,model2))
     True
     """
-    "*** BEGIN YOUR CODE HERE ***"
+    "* BEGIN YOUR CODE HERE *"    
+    return disjoin(literals)
     util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    "* END YOUR CODE HERE *"
 
 
 def atMostOne(literals: List[Expr]) -> Expr:
@@ -205,9 +207,15 @@ def atMostOne(literals: List[Expr]) -> Expr:
     the expressions in the list is true.
     itertools.combinations may be useful here.
     """
-    "*** BEGIN YOUR CODE HERE ***"
+    "* BEGIN YOUR CODE HERE *"
+    clauses = []
+    for i in range(len(literals)):
+        for j in range(i + 1, len(literals)):
+            clause = ~literals[i] | ~literals[j]
+            clauses.append(clause)
+    return conjoin(clauses)
     util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    "* END YOUR CODE HERE *"
 
 
 def exactlyOne(literals: List[Expr]) -> Expr:
@@ -216,9 +224,10 @@ def exactlyOne(literals: List[Expr]) -> Expr:
     CNF (conjunctive normal form)that represents the logic that exactly one of 
     the expressions in the list is true.
     """
-    "*** BEGIN YOUR CODE HERE ***"
+    "* BEGIN YOUR CODE HERE *"
+    return conjoin([atLeastOne(literals), atMostOne(literals)])
     util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    "* END YOUR CODE HERE *"
 
 #______________________________________________________________________________
 # QUESTION 3
