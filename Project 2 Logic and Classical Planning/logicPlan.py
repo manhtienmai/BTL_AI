@@ -58,9 +58,7 @@ def sentence1() -> Expr:
     s2 = ~A % (~B | C)
     s3 = disjoin([~A, ~B, C])
 
-    return conjoin([s1, s2, s3])
-    util.raiseNotDefined()
-    
+    return conjoin([s1, s2, s3])    
     "*** END YOUR CODE HERE ***"
     
 
@@ -81,7 +79,6 @@ def sentence2() -> Expr:
     s4 = ~D >> C
 
     return conjoin([s1, s2, s3, s4])
-    util.raiseNotDefined()
     "*** END YOUR CODE HERE ***"
 
 
@@ -108,7 +105,6 @@ def sentence3() -> Expr:
     s3 = PacmanBorn_0
 
     return conjoin([s1, s2, s3])
-    util.raiseNotDefined()
     "*** END YOUR CODE HERE ***"
 
 def findModel(sentence: Expr) -> Dict[Expr, bool]:
@@ -127,7 +123,6 @@ def findModelUnderstandingCheck() -> Dict[Expr, bool]:
     print("a.__dict__ is:", a.__dict__) # might be helpful for getting ideas
     a.__dict__['op'] = 'a'
     return {a : True}
-    util.raiseNotDefined()
     "*** END YOUR CODE HERE ***"
 
 def entails(premise: Expr, conclusion: Expr) -> bool:
@@ -135,7 +130,6 @@ def entails(premise: Expr, conclusion: Expr) -> bool:
     """
     "*** BEGIN YOUR CODE HERE ***"
     return not findModel(premise & ~conclusion)
-    util.raiseNotDefined()
     "*** END YOUR CODE HERE ***"
 
 def plTrueInverse(assignments: Dict[Expr, bool], inverse_statement: Expr) -> bool:
@@ -148,7 +142,6 @@ def plTrueInverse(assignments: Dict[Expr, bool], inverse_statement: Expr) -> boo
     print(f"Result: {result}")
 
     return result
-    util.raiseNotDefined()
     "*** END YOUR CODE HERE ***"
 
 #______________________________________________________________________________
@@ -419,26 +412,6 @@ def localization(problem, agent) -> Generator:
     util.raiseNotDefined()
 
     for t in range(agent.num_timesteps):
-        KB.append(pacphysicsAxioms(t, all_coords, non_outer_wall_coords, walls_grid))
-
-        # Add action taken by Pac-Man at this timestep
-        action = agent.actions[t]
-        KB.append(PropSymbolExpr(action, time=t))
-
-        # Add percept information at this timestep
-        percepts = agent.getPercepts()  # This method should return the 4-bit sensor percepts
-        four_bit_percept_sentences = fourBitPerceptRules(percepts, walls_list, t)
-        KB.extend(four_bit_percept_sentences)
-
-        # Find possible Pacman locations with updated KB
-        possible_locations = []
-        for x, y in possible_starting_locations:
-            model = findModel(conjoin(KB) & PropSymbolExpr(pacman_str, x, y, time=t))
-            if model is not None:
-                possible_locations.append((x, y))
-
-        # Move to the next state
-        agent.moveToNextState(action)
         "*** END YOUR CODE HERE ***"
         yield possible_locations
 
@@ -468,38 +441,10 @@ def mapping(problem, agent) -> Generator:
     KB.append(conjoin(outer_wall_sent))
 
     "*** BEGIN YOUR CODE HERE ***"
-    KB.append(PropSymbolExpr(pacman_str, pac_x_0, pac_y_0, time=0))
-    KB.append(~PropSymbolExpr(wall_str, pac_x_0, pac_y_0))
+    util.raiseNotDefined()
 
     for t in range(agent.num_timesteps):
-        # Add pacphysics axioms for the current timestep
-        KB.append(pacphysicsAxioms(t, all_coords, non_outer_wall_coords))
-
-        # Add action taken by Pac-Man at this timestep
-        action = agent.actions[t]
-        KB.append(PropSymbolExpr(action, time=t))
-
-        # Add percept information at this timestep
-        percepts = agent.getPercepts()  # This method should return the NSEW wall percepts
-        directions = ['North', 'East', 'South', 'West']
-        for direction, percept in zip(directions, percepts):
-            dx, dy = DIR_TO_DXDY_MAP[direction]  # Convert direction to delta x, y
-            if percept:
-                KB.append(PropSymbolExpr(wall_str, pac_x_0 + dx, pac_y_0 + dy, time=t))
-            else:
-                KB.append(~PropSymbolExpr(wall_str, pac_x_0 + dx, pac_y_0 + dy, time=t))
-
-        # Infer wall locations and update known_map
-        for x, y in non_outer_wall_coords:
-            if findModel(conjoin(KB) & PropSymbolExpr(wall_str, x, y)):
-                known_map[x][y] = 1
-            elif findModel(conjoin(KB) & ~PropSymbolExpr(wall_str, x, y)):
-                known_map[x][y] = 0
-
-        # Move to the next state
-        agent.moveToNextState(action)
-
-        # Yield the current state of the known_map
+        "*** END YOUR CODE HERE ***"
         yield known_map
 
 #______________________________________________________________________________
