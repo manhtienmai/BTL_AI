@@ -236,7 +236,6 @@ def pacmanSuccessorAxiomSingle(x: int, y: int, time: int, walls_grid: List[List[
         return None
     
     "*** BEGIN YOUR CODE HERE ***"
-    return (PropSymbolExpr(pacman_str, x, y, time=now) % disjoin(possible_causes))
     util.raiseNotDefined()
     "*** END YOUR CODE HERE ***"
 
@@ -308,29 +307,8 @@ def pacphysicsAxioms(t: int, all_coords: List[Tuple], non_outer_wall_coords: Lis
     pacphysics_sentences = []
 
     "*** BEGIN YOUR CODE HERE ***"
-    for x, y in all_coords:
-        if walls_grid and walls_grid[x][y]:
-            pacphysics_sentences.append(~PropSymbolExpr(pacman_str, x, y, time=t))
-
-    # Pac-Man must be in exactly one position
-    possible_positions = [PropSymbolExpr(pacman_str, x, y, time=t) for x, y in non_outer_wall_coords]
-    pacphysics_sentences.append(exactlyOne(possible_positions))
-
-    # Pac-Man takes exactly one action
-    possible_actions = [PropSymbolExpr(action, time=t) for action in ['North', 'East', 'South', 'West']]
-    pacphysics_sentences.append(exactlyOne(possible_actions))
-
-    # Incorporate sensor model axioms if provided
-    if sensorModel is not None:
-        pacphysics_sentences.append(sensorModel(t, non_outer_wall_coords))
-
-    # Incorporate successor axioms if provided
-    if t > 0 and successorAxioms is not None:
-        # Adjust this line to match the signature of allLegalSuccessorAxioms
-        successor_sentences = [successorAxioms(x, y, t) for x, y in non_outer_wall_coords]  # Removed walls_grid if it's not needed
-        pacphysics_sentences.extend(filter(None, successor_sentences))
-
-        "*** END YOUR CODE HERE ***"
+    util.raiseNotDefined()
+    "*** END YOUR CODE HERE ***"
 
     return conjoin(pacphysics_sentences)
 
@@ -363,18 +341,8 @@ def checkLocationSatisfiability(x1_y1: Tuple[int, int], x0_y0: Tuple[int, int], 
     KB.append(conjoin(map_sent))
 
     "*** BEGIN YOUR CODE HERE ***"
-    KB.append(pacphysicsAxioms(0, all_coords, non_outer_wall_coords, walls_grid, sensorModel= None, successorAxioms= allLegalSuccessorAxioms))
-    KB.append(pacphysicsAxioms(1, all_coords, non_outer_wall_coords, walls_grid, sensorModel= None, successorAxioms= allLegalSuccessorAxioms))
-    KB.append(PropSymbolExpr(pacman_str, x0, y0, time = 0))
-    KB.append(PropSymbolExpr(action0, time= 0))
-    KB.append(PropSymbolExpr(action1, time= 1))
-    model1 = findModel(conjoin([conjoin(KB), PropSymbolExpr(pacman_str, x1, y1, time= 1)]))
-    model2 = findModel(conjoin([conjoin(KB), ~PropSymbolExpr(pacman_str, x1, y1, time= 1)]))
-    return(model1, model2)
-
     util.raiseNotDefined()
     "*** END YOUR CODE HERE ***"
-
 
 #______________________________________________________________________________
 # QUESTION 4
@@ -400,8 +368,6 @@ def positionLogicPlan(problem) -> List:
     KB = []
 
     "*** BEGIN YOUR CODE HERE ***"
-    max_timesteps = 50
-    
     util.raiseNotDefined()
     "*** END YOUR CODE HERE ***"
 
@@ -453,6 +419,26 @@ def localization(problem, agent) -> Generator:
     util.raiseNotDefined()
 
     for t in range(agent.num_timesteps):
+        KB.append(pacphysicsAxioms(t, all_coords, non_outer_wall_coords, walls_grid))
+
+        # Add action taken by Pac-Man at this timestep
+        action = agent.actions[t]
+        KB.append(PropSymbolExpr(action, time=t))
+
+        # Add percept information at this timestep
+        percepts = agent.getPercepts()  # This method should return the 4-bit sensor percepts
+        four_bit_percept_sentences = fourBitPerceptRules(percepts, walls_list, t)
+        KB.extend(four_bit_percept_sentences)
+
+        # Find possible Pacman locations with updated KB
+        possible_locations = []
+        for x, y in possible_starting_locations:
+            model = findModel(conjoin(KB) & PropSymbolExpr(pacman_str, x, y, time=t))
+            if model is not None:
+                possible_locations.append((x, y))
+
+        # Move to the next state
+        agent.moveToNextState(action)
         "*** END YOUR CODE HERE ***"
         yield possible_locations
 
@@ -482,10 +468,38 @@ def mapping(problem, agent) -> Generator:
     KB.append(conjoin(outer_wall_sent))
 
     "*** BEGIN YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    KB.append(PropSymbolExpr(pacman_str, pac_x_0, pac_y_0, time=0))
+    KB.append(~PropSymbolExpr(wall_str, pac_x_0, pac_y_0))
 
     for t in range(agent.num_timesteps):
-        "*** END YOUR CODE HERE ***"
+        # Add pacphysics axioms for the current timestep
+        KB.append(pacphysicsAxioms(t, all_coords, non_outer_wall_coords))
+
+        # Add action taken by Pac-Man at this timestep
+        action = agent.actions[t]
+        KB.append(PropSymbolExpr(action, time=t))
+
+        # Add percept information at this timestep
+        percepts = agent.getPercepts()  # This method should return the NSEW wall percepts
+        directions = ['North', 'East', 'South', 'West']
+        for direction, percept in zip(directions, percepts):
+            dx, dy = DIR_TO_DXDY_MAP[direction]  # Convert direction to delta x, y
+            if percept:
+                KB.append(PropSymbolExpr(wall_str, pac_x_0 + dx, pac_y_0 + dy, time=t))
+            else:
+                KB.append(~PropSymbolExpr(wall_str, pac_x_0 + dx, pac_y_0 + dy, time=t))
+
+        # Infer wall locations and update known_map
+        for x, y in non_outer_wall_coords:
+            if findModel(conjoin(KB) & PropSymbolExpr(wall_str, x, y)):
+                known_map[x][y] = 1
+            elif findModel(conjoin(KB) & ~PropSymbolExpr(wall_str, x, y)):
+                known_map[x][y] = 0
+
+        # Move to the next state
+        agent.moveToNextState(action)
+
+        # Yield the current state of the known_map
         yield known_map
 
 #______________________________________________________________________________
