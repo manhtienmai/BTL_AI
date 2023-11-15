@@ -504,13 +504,14 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
             nearest_food_distance = distance
 
     return nearest_food_distance
+#Cau8
 # import bfs
 from search import bfs
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
     def registerInitialState(self, state):
         self.actions = []
-        currentState = state
+currentState = state
         while(currentState.getFood().count() > 0):
             nextPathSegment = self.findPathToClosestDot(currentState) # The missing piece
             self.actions += nextPathSegment
