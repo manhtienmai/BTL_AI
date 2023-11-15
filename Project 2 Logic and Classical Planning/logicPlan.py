@@ -51,8 +51,19 @@ def sentence1() -> Expr:
     """
     "*** BEGIN YOUR CODE HERE ***"
     util.raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+    A = Expr()  # You need to define A, B, and C as instances of Expr
+    B = Expr()
+    C = Expr()
 
+    # Construct the logical expressions
+    expr1 = A | B
+    expr2 = ~(~A | B)  # ¬A ↔ (¬B ∨ C)
+    expr3 = ~A | ~B | C
+
+    # Return a conjunction of the three expressions
+    return expr1 & expr2 & expr3
+    "*** END YOUR CODE HERE ***"
+    
 
 def sentence2() -> Expr:
     """Returns a Expr instance that encodes that the following expressions are all true.
@@ -64,6 +75,19 @@ def sentence2() -> Expr:
     """
     "*** BEGIN YOUR CODE HERE ***"
     util.raiseNotDefined()
+    A = Expr()  # You need to define A, B, C, and D as instances of Expr
+    B = Expr()
+    C = Expr()
+    D = Expr()
+
+    # Construct the logical expressions
+    expr1 = C == (B | D)  # C ↔ (B ∨ D)
+    expr2 = ~A | (~B & ~D)  # A implies ((¬B) ∧ (¬D))
+    expr3 = ~(B & ~C) >> A  # (¬(B ∧ ¬C)) implies A
+    expr4 = ~D >> C  # (¬D) implies C
+
+    # Return a conjunction of the four expressions
+    return expr1 & expr2 & expr3 & expr4
     "*** END YOUR CODE HERE ***"
 
 
@@ -81,6 +105,19 @@ def sentence3() -> Expr:
     """
     "*** BEGIN YOUR CODE HERE ***"
     util.raiseNotDefined()
+    # Define the symbols
+    PacmanAlive_1 = PropSymbolExpr('PacmanAlive', 1)
+    PacmanAlive_0 = PropSymbolExpr('PacmanAlive', 0)
+    PacmanBorn_0 = PropSymbolExpr('PacmanBorn', 0)
+    PacmanKilled_0 = PropSymbolExpr('PacmanKilled', 0)
+
+    # Construct the logical expressions
+    expr1 = PacmanAlive_1 % (PacmanAlive_0 & ~PacmanKilled_0 | ~PacmanAlive_0 & PacmanBorn_0)
+    expr2 = ~(PacmanAlive_0 & PacmanBorn_0)
+    expr3 = PacmanBorn_0
+
+    # Return a conjunction of the three expressions
+    return expr1 & expr2 & expr3
     "*** END YOUR CODE HERE ***"
 
 def findModel(sentence: Expr) -> Dict[Expr, bool]:
@@ -98,6 +135,13 @@ def findModelUnderstandingCheck() -> Dict[Expr, bool]:
     "*** BEGIN YOUR CODE HERE ***"
     print("a.__dict__ is:", a.__dict__) # might be helpful for getting ideas
     util.raiseNotDefined()
+     a = Expr('A')
+    # Assuming that findModel takes a lowercase expression, create a lowercase version of 'a'
+    a_lowercase = Expr('a')
+    # Call findModel with the lowercase expression
+    model_result = findModel(a_lowercase)
+    # Return the result
+    return model_result
     "*** END YOUR CODE HERE ***"
 
 def entails(premise: Expr, conclusion: Expr) -> bool:
@@ -105,6 +149,14 @@ def entails(premise: Expr, conclusion: Expr) -> bool:
     """
     "*** BEGIN YOUR CODE HERE ***"
     util.raiseNotDefined()
+    # Create a symbolic expression representing the negation of the conclusion
+    not_conclusion = ~conclusion
+    # Create a conjunction of the premise and the negation of the conclusion
+    combined_expr = premise & not_conclusion
+    # Convert the combined expression to CNF (Conjunctive Normal Form)
+    cnf_expr = to_cnf(combined_expr)
+    # Check if the CNF expression is unsatisfiable
+    return not satisfiable(cnf_expr)
     "*** END YOUR CODE HERE ***"
 
 def plTrueInverse(assignments: Dict[Expr, bool], inverse_statement: Expr) -> bool:
@@ -113,6 +165,10 @@ def plTrueInverse(assignments: Dict[Expr, bool], inverse_statement: Expr) -> boo
     """
     "*** BEGIN YOUR CODE HERE ***"
     util.raiseNotDefined()
+    # Evaluate the truth value of the inverse statement
+    inverse_truth_value = pl_true(inverse_statement, assignments)
+    # Return the negation of the truth value
+    return not inverse_truth_value
     "*** END YOUR CODE HERE ***"
 
 #______________________________________________________________________________
